@@ -1,0 +1,15 @@
+{
+  "name": "@ecom/page-builder",
+  "version": "1.0.0",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./styles.css": "./src/styles.css"
+  },
+  "dependencies": {
+    "@puckeditor/core": "0.23.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.5"
+  }
+}
