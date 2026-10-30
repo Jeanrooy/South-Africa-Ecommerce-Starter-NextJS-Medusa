@@ -99,13 +99,69 @@ Example task:
 | [Basket and checkout](docs/BASKET-CHECKOUT.md)       | Shopping interactions and verification                   |
 | [Launch guide](docs/LAUNCH.md)                       | South African configuration and production work          |
 
-## Current status
+## Environment configuration
 
-A working local template with seeded catalog, CMS and manual-payment checkout. Previous implementation checks passed backend/storefront builds, API smoke tests, visual-builder checks and browser checkout. Browser scripts require installed Chrome and running services; some create demo customers/orders. See [verification](docs/AGENT-GUIDE.md#verification).
+Each app has its own environment. The repository root is not the place for application secrets.
+
+| App                | Local file                   | Example to copy                 | Deployment                                                              |
+| ------------------ | ---------------------------- | ------------------------------- | ----------------------------------------------------------------------- |
+| Medusa backend     | `apps/backend/.env`          | `apps/backend/.env.template`    | Inject backend variables into the process, including migration commands |
+| Next.js storefront | `apps/storefront/.env.local` | `apps/storefront/.env.template` | Inject storefront variables at build and runtime                        |
+
+`pnpm setup` creates the local files automatically. For manual configuration, copy the templates into the paths above. Replace every placeholder below; do not commit environment files.
+
+### Backend example — `apps/backend/.env`
+
+```dotenv
+DATABASE_URL=postgres://medusa:CHANGE_ME@localhost:5432/ecomstarter
+CMS_DATABASE_URL=postgresql://medusa:CHANGE_ME@localhost:5432/ecomstarter?schema=cms
+STORE_CORS=http://localhost:8000
+ADMIN_CORS=http://localhost:9000
+AUTH_CORS=http://localhost:8000,http://localhost:9000
+JWT_SECRET=REPLACE_WITH_A_LONG_RANDOM_SECRET
+COOKIE_SECRET=REPLACE_WITH_ANOTHER_LONG_RANDOM_SECRET
+STOREFRONT_URL=http://localhost:8000
+DEFAULT_COUNTRY=za
+EMAIL_MODE=log
+PEACH_ENABLED=false
+```
+
+Medusa and Prisma use separate schema connections. Keep Peach merchant credentials and `RESEND_API_KEY` in the backend environment only. See [setup](docs/SETUP.md) for all optional integration variables.
+
+### Storefront example — `apps/storefront/.env.local`
+
+```dotenv
+NEXT_PUBLIC_MEDUSA_BACKEND_URL=http://localhost:9000
+NEXT_PUBLIC_MEDUSA_PUBLISHABLE_KEY=pk_REPLACE_WITH_YOUR_PUBLISHABLE_KEY
+NEXT_PUBLIC_DEFAULT_REGION=za
+NEXT_PUBLIC_BASE_URL=http://localhost:8000
+```
+
+Create the publishable key in Medusa Admin and associate it with the storefront sales channel. Local setup supplies it automatically. `NEXT_PUBLIC_*` values are public and can be embedded in the browser build: never put secret keys there. Rebuild Next.js after changing them.
+
+## Deployment
+
+The simplest documented self-hosted route is **Docker Compose for PostgreSQL/Redis, with both apps deployed from source**. The existing `docker-compose.yml` starts databases only; it is not a full application deployment or a hardened production configuration.
+
+1. Provision PostgreSQL and the infrastructure your Medusa configuration uses.
+2. Set separate backend/storefront environments using your HTTPS domains and database credentials.
+3. Install dependencies and generate Prisma Client.
+4. Apply Prisma CMS and Medusa migrations as a release step.
+5. Build and start Medusa from `apps/backend/.medusa/server`.
+6. Build and start Next.js on port 8000, with the backend reachable.
+7. Put both services behind an HTTPS reverse proxy and a process supervisor.
+
+Follow [the deployment guide](docs/DEPLOYMENT.md) for exact commands, a Compose database example, environment placement, first-time setup and updates. Use [the launch guide](docs/LAUNCH.md) for merchant configuration.
+
+## Roadmap
+
+The template includes a storefront, product variations, merchant admin, visual CMS and manual-payment checkout. Planned work is tracked in [the roadmap](docs/ROADMAP.md), including integration validation, production infrastructure and additional commerce features.
+
+Previous implementation checks passed backend/storefront builds, API smoke tests, visual-builder checks and browser checkout. Browser scripts require installed Chrome and running services; some create demo customers/orders. See [verification](docs/AGENT-GUIDE.md#verification).
 
 Before launch, configure payments, delivery, tax rules, policies, email, storage and production infrastructure. **Peach has not been tested against a merchant sandbox account here.** Resend needs a verified sender. Replace demo prices, imagery, specifications and legal copy.
 
-Not included: wishlist, reviews, gift cards, advertising integrations, marketing automation, live currency conversion or full Elementor parity. The builder controls content pages; header, footer and commerce templates remain code-controlled.
+Wishlist, reviews, gift cards, advertising integrations, marketing automation and live currency conversion are roadmap items. The builder controls content pages; header, footer and commerce templates remain code-controlled. See the roadmap for builder extensions and their scope.
 
 ## Credits and license
 
