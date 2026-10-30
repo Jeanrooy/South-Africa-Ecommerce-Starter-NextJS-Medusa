@@ -1,5 +1,7 @@
 # Documentation
 
+[Deployment from source / Compose infrastructure](DEPLOYMENT.md) · [Roadmap](ROADMAP.md)
+
 EcomStarter is a South African ecommerce template built on Medusa and Next.js. Form & Field is its replaceable demo brand.
 
 | Guide                                           | Purpose                                                 |
